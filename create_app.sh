@@ -12,7 +12,7 @@ echo "Creating $APP_NAME in your project folder..."
 mkdir -p "$APP_PATH/Contents/MacOS"
 
 # Write the Info.plist
-cat > "$APP_PATH/Contents/Info.plist" << EOF
+cat > "$APP_PATH/Contents/Info.plist" << PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -29,17 +29,14 @@ cat > "$APP_PATH/Contents/Info.plist" << EOF
     <string>APPL</string>
 </dict>
 </plist>
-EOF
+PLIST
 
-# Write the actual launcher script inside the .app
-cat > "$APP_PATH/Contents/MacOS/launch" << EOF
+# Write the launcher script inside the .app
+cat > "$APP_PATH/Contents/MacOS/launch" << LAUNCH
 #!/bin/bash
-cd "$DIR"
-if [ -f ".venv/bin/activate" ]; then
-    source .venv/bin/activate
-fi
-osascript -e 'tell application "Terminal" to do script "cd \"$DIR\" && source .venv/bin/activate && python3 main.py"'
-EOF
+FOLDER=\$(cat ~/.voicenotes_path)
+osascript -e "tell application \"Terminal\" to do script \"cd '\$FOLDER' && python3 main.py\""
+LAUNCH
 
 # Make the launcher executable
 chmod +x "$APP_PATH/Contents/MacOS/launch"
