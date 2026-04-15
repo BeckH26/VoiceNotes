@@ -32,10 +32,23 @@ cat > "$APP_PATH/Contents/Info.plist" << PLIST
 PLIST
 
 # Write the launcher script inside the .app
-cat > "$APP_PATH/Contents/MacOS/launch" << LAUNCH
+cat > "$APP_PATH/Contents/MacOS/launch" << 'LAUNCH'
 #!/bin/bash
-FOLDER=\$(cat ~/.voicenotes_path)
-osascript -e "tell application \"Terminal\" to do script \"cd '\$FOLDER' && python3 main.py\""
+FOLDER=$(cat ~/.voicenotes_path)
+
+# Add Homebrew to PATH for Apple Silicon Macs (M1/M2/M3)
+if [[ -f "/opt/homebrew/bin/brew" ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+
+# Pick the right python3: prefer Homebrew's, fall back to whatever is available
+if [[ -f "/opt/homebrew/bin/python3" ]]; then
+    PY="/opt/homebrew/bin/python3"
+else
+    PY="python3"
+fi
+
+osascript -e "tell application \"Terminal\" to do script \"cd '$FOLDER' && $PY main.py\""
 LAUNCH
 
 # Make the launcher executable
