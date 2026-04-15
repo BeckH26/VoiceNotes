@@ -17,9 +17,9 @@ WHAT IT DOES:
 ----------------------------------------
 FIRST TIME SETUP:
   1. Open Terminal
-  2. Drag setup.sh into Terminal and press Enter
+  2. Type "sh " then drag setup.sh into Terminal and press Enter
   3. Wait for everything to install (~4GB download)
-  4. Drag create_app.sh into Terminal and press Enter
+  4. Type "sh " then drag create_app.sh into Terminal and press Enter
   5. A VoiceNotes.app will appear in the folder
 
 ----------------------------------------
