@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# Get the directory where this script lives (your project folder)
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+APP_NAME="VoiceNotes.app"
+APP_PATH="$DIR/$APP_NAME"
+
+echo "Creating $APP_NAME in your project folder..."
+
+# Create the .app bundle folder structure
+mkdir -p "$APP_PATH/Contents/MacOS"
+
+# Write the Info.plist
+cat > "$APP_PATH/Contents/Info.plist" << EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleExecutable</key>
+    <string>launch</string>
+    <key>CFBundleName</key>
+    <string>VoiceNotes</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.voicenotes.app</string>
+    <key>CFBundleVersion</key>
+    <string>1.0</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+</dict>
+</plist>
+EOF
+
+# Write the actual launcher script inside the .app
+cat > "$APP_PATH/Contents/MacOS/launch" << EOF
+#!/bin/bash
+cd "$DIR"
+if [ -f ".venv/bin/activate" ]; then
+    source .venv/bin/activate
+fi
+osascript -e 'tell application "Terminal" to do script "cd \"$DIR\" && source .venv/bin/activate && python3 main.py"'
+EOF
+
+# Make the launcher executable
+chmod +x "$APP_PATH/Contents/MacOS/launch"
+
+echo ""
+echo "========================================"
+echo "  Done! VoiceNotes.app created."
+echo "  You can now double-click it to run."
+echo "========================================"
