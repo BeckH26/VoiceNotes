@@ -46,30 +46,30 @@ if [[ -n "$CERT_CMD" ]]; then
     bash "$CERT_CMD" > /dev/null 2>&1
 fi
 
-# Method 2: Install/upgrade certifi and point Python at it
+# Method 2: Install/upgrade certifi
 pip install --upgrade certifi > /dev/null 2>&1
-python3 -c "
-import ssl, certifi, os
-cafile = certifi.where()
-os.environ['SSL_CERT_FILE'] = cafile
-os.environ['REQUESTS_CA_BUNDLE'] = cafile
-print('    SSL cert path set to:', cafile)
-"
 
-# Persist SSL env vars for future Terminal sessions
+# ─── Persist SSL env vars dynamically (survives Python version changes) ───────
 SHELL_RC="$HOME/.zshrc"
 if [[ "$SHELL" == *"bash"* ]]; then
     SHELL_RC="$HOME/.bash_profile"
 fi
 
-if ! grep -q "SSL_CERT_FILE" "$SHELL_RC" 2>/dev/null; then
-    CERTIFI_PATH=$(python3 -c "import certifi; print(certifi.where())")
-    echo "" >> "$SHELL_RC"
-    echo "# VoiceNotes SSL fix" >> "$SHELL_RC"
-    echo "export SSL_CERT_FILE=\"$CERTIFI_PATH\"" >> "$SHELL_RC"
-    echo "export REQUESTS_CA_BUNDLE=\"$CERTIFI_PATH\"" >> "$SHELL_RC"
-    echo "    SSL vars added to $SHELL_RC"
-fi
+# Remove any old hardcoded SSL_CERT_FILE or REQUESTS_CA_BUNDLE lines
+sed -i '' '/SSL_CERT_FILE/d' "$SHELL_RC" 2>/dev/null
+sed -i '' '/REQUESTS_CA_BUNDLE/d' "$SHELL_RC" 2>/dev/null
+sed -i '' '/VoiceNotes SSL fix/d' "$SHELL_RC" 2>/dev/null
+
+# Add dynamic versions that resolve at shell startup, not install time
+echo "" >> "$SHELL_RC"
+echo "# VoiceNotes SSL fix" >> "$SHELL_RC"
+echo 'export SSL_CERT_FILE="$(python3 -c \"import certifi; print(certifi.where())\" 2>/dev/null)"' >> "$SHELL_RC"
+echo 'export REQUESTS_CA_BUNDLE="$(python3 -c \"import certifi; print(certifi.where())\" 2>/dev/null)"' >> "$SHELL_RC"
+echo "    SSL vars added dynamically to $SHELL_RC"
+
+# Apply to current session too
+export SSL_CERT_FILE="$(python3 -c "import certifi; print(certifi.where())" 2>/dev/null)"
+export REQUESTS_CA_BUNDLE="$SSL_CERT_FILE"
 
 # ─── Python packages ─────────────────────────────────────────────────────────
 echo ">>> Installing Python packages..."
@@ -77,9 +77,7 @@ pip install ollama openai-whisper sounddevice numpy scipy tqdm certifi
 
 # ─── Pre-download Whisper model (avoids SSL error on first run) ───────────────
 echo ">>> Pre-downloading Whisper base model (this runs once, ~150MB)..."
-CERTIFI_PATH=$(python3 -c "import certifi; print(certifi.where())")
-SSL_CERT_FILE="$CERTIFI_PATH" REQUESTS_CA_BUNDLE="$CERTIFI_PATH" \
-    python3 -c "
+python3 -c "
 import ssl, certifi
 ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())
 import whisper
