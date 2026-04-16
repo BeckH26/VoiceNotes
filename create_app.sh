@@ -36,16 +36,18 @@ cat > "$APP_PATH/Contents/MacOS/launch" << 'LAUNCH'
 #!/bin/bash
 FOLDER=$(cat ~/.voicenotes_path)
 
-# Add Homebrew to PATH for Apple Silicon Macs (M1/M2/M3)
-if [[ -f "/opt/homebrew/bin/brew" ]]; then
-    eval "$(/opt/homebrew/bin/brew shellenv)"
-fi
-
-# Pick the right python3: prefer Homebrew's, fall back to whatever is available
-if [[ -f "/opt/homebrew/bin/python3" ]]; then
-    PY="/opt/homebrew/bin/python3"
+# Use the exact Python 3.11 path saved during setup
+if [[ -f "$HOME/.voicenotes_python" ]]; then
+    PY=$(cat ~/.voicenotes_python)
 else
-    PY="python3"
+    # Fallback: try known Python 3.11 locations
+    if [[ -f "/opt/homebrew/bin/python3.11" ]]; then
+        PY="/opt/homebrew/bin/python3.11"
+    elif [[ -f "/usr/local/bin/python3.11" ]]; then
+        PY="/usr/local/bin/python3.11"
+    else
+        PY="python3"
+    fi
 fi
 
 osascript -e "tell application \"Terminal\" to do script \"cd '$FOLDER' && $PY main.py\""
