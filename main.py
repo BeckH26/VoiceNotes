@@ -29,11 +29,8 @@ def run_pipeline():
     status("Status", G, "READY")
 
     # Wait for user to press enter before starting
-    try:
-    	print(f"\n  {Y}▶{RST} Press {C}ENTER{RST} to start recording...", end="")
-    	input()
-    except EOFError:
-    	sys.exit()
+    print(f"\n  {Y}▶{RST} Press {C}ENTER{RST} to start recording...", end="")
+    input()
 
     print(f"\n  {Y}▶{RST} {G}Recording...{RST}")
     print(f"  {Y}▶{RST} Press {C}ENTER{RST} to stop\n")
